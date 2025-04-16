@@ -1,4 +1,6 @@
 import User from '../models/user';
+import bcrypt from 'bcrypt';
+import { Op } from 'sequelize';
 
 export const getAllUsers = async () => {
   return await User.findAll();
@@ -29,3 +31,19 @@ export const deleteUser = async (id: number) => {
   }
   return false;
 };
+
+export const loginUser = async (emailPhone: string, password: string) => {
+
+  const user = await User.findOne({ where: { email: emailPhone } });
+  if (!user) {
+    return null;
+  }
+
+  const isPasswordValid = await bcrypt.compare(password, user.password);
+  if (!isPasswordValid) {
+    return null;
+  }
+
+  return user;
+
+}

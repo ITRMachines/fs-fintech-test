@@ -1,5 +1,5 @@
 import { Request, Response } from 'express';
-
+import User from '../models/user';
 import * as userService from '../services/userService';
 
 export const getAllUsers = async (req: Request, res: Response) => {
@@ -67,5 +67,32 @@ export const deleteUser = async (req: Request, res: Response) => {
   } catch (error) {
     console.error('Error deleting user:', error);
     res.status(500).json({ error: 'Internal Server Error' });
+  }
+};
+
+export const login = async (req: Request, res: Response) => {
+  const { emailPhone, password } = req.body;
+
+  if (!emailPhone || !password) {
+    return res.status(400).json({ error: 'Email/Phone and password are required' });
+  }
+
+  try {
+    const user = await userService.loginUser(emailPhone, password);
+    if (!user) {
+      return res.status(401).json({ error: 'Invalid email/phone or password' });
+    }
+
+    res.json({ 
+      message: 'Login successful', 
+      user 
+    });
+    
+  } catch (error) {
+    console.error('Error logging in:', error);
+    res.status(500).json({ 
+      error: 'Internal Server Error',
+      message: error instanceof Error ? error.message : 'Unknown error occurred'
+    });
   }
 };

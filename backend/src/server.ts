@@ -15,7 +15,7 @@ const port = process.env.PORT || 3001;
 admin.initializeApp();
 
 // Enable CORS for all origins
-app.use(cors());
+app.use(cors({ origin: '*' }));
 app.use(express.json());
 
 // Routes
