@@ -1,53 +1,53 @@
-# Scenario 2: Cannot Access Account After Registration
+# Escenario 2: No se puede acceder a la cuenta después del registro
 
-## User Complaint
+## Reclamo del Usuario
 
-A newly registered user complains that immediately after completing the registration form and receiving a success message, they are unable to log in. When they try to log in with the credentials they just created, they receive an "Invalid credentials" or "User not found" error.
+Un usuario recién registrado se queja de que, inmediatamente después de completar el formulario de registro y recibir un mensaje de éxito, no puede iniciar sesión. Cuando intenta ingresar con las credenciales que acaba de crear, recibe un error de "Credenciales inválidas" o "Usuario no encontrado".
 
-## Steps to Reproduce
+## Pasos para Reproducir
 
-1.  Navigate to the registration page.
-2.  Fill out the registration form with unique and valid details (username, email, password).
-3.  Submit the registration form.
-4.  Observe a success message indicating registration was successful.
-5.  Navigate to the login page.
-6.  Enter the exact username/email and password used during registration.
-7.  Click the "Login" button.
-8.  **Expected Result:** The user is successfully logged in.
-9.  **Actual Result:** The user receives an error message (e.g., "Invalid credentials", "User not found", "Authentication failed").
+1.  Navegar a la página de registro.
+2.  Completar el formulario con datos únicos y válidos (nombre de usuario, correo electrónico, contraseña).
+3.  Enviar el formulario de registro.
+4.  Observar un mensaje de éxito indicando que el registro fue exitoso.
+5.  Navegar a la página de inicio de sesión.
+6.  Ingresar exactamente el mismo nombre de usuario/correo y contraseña usados en el registro.
+7.  Hacer clic en el botón "Iniciar sesión".
+8.  **Resultado Esperado:** El usuario inicia sesión exitosamente.
+9.  **Resultado Real:** El usuario recibe un mensaje de error (ej.: "Credenciales inválidas", "Usuario no encontrado", "Fallo de autenticación").
 
-## Technical Investigation Task
+## Tarea de Investigación Técnica
 
-The technical team must trace the registration process and subsequent login attempt to identify why the newly created user account is not accessible.
+El equipo técnico debe rastrear el proceso de registro y el intento de inicio de sesión posterior para identificar por qué no se puede acceder a la cuenta recién creada.
 
-### Potential Areas to Investigate:
+### Áreas Potenciales para Investigar:
 
-1.  **Backend Registration Logic:**
-    *   Review the code in `fintech-support-challenge/backend/src/controllers/userController.ts` (specifically the registration handler, likely `registerUser` or similar).
-    *   Is the user data actually being saved to the database after validation?
-    *   Is the password hashing occurring correctly *before* saving the user? If the plaintext password is saved, login comparison will fail.
-    *   Are there any errors occurring silently during the database save operation (e.g., constraint violations, connection issues)? Check backend logs.
-    *   Is there an asynchronous operation for saving the user that isn't being awaited properly, potentially causing the success response to be sent before the save is complete?
-2.  **Database:**
-    *   Connect to the database (PostgreSQL) used by the backend.
-    *   Manually check if the user record exists in the `users` table after the supposed successful registration.
-    *   Verify if the `password` field in the newly created record contains a properly formatted hash, not the plaintext password.
-3.  **Login Logic:**
-    *   Re-verify the login handler (`loginUser`) in `userController.ts`. Is it looking up the user correctly (e.g., by email or username)?
-    *   Is the comparison field case-sensitive (e.g., searching for `email` but the user typed `Email`)?
-4.  **Frontend Data Transmission:**
-    *   Use browser developer tools to inspect the network request during login. Is the username/email and password being sent exactly as entered?
-5.  **Transaction Issues:**
-    *   If the registration process involves multiple database operations, is it wrapped in a transaction? Could the transaction be failing and rolling back the user creation without a clear error message to the frontend?
+1.  **Lógica de Registro en el Backend:**
+    *   Revisar el código en `fintech-support-challenge/backend/src/controllers/userController.ts` (específicamente el manejador de registro, probablemente `registerUser` o similar).
+    *   ¿Se están guardando realmente los datos del usuario en la base de datos después de la validación?
+    *   ¿Se está realizando el hash de la contraseña correctamente *antes* de guardar al usuario? Si se guarda la contraseña en texto plano, fallará la comparación durante el login.
+    *   ¿Hay errores que ocurren en silencio durante la operación de guardado (ej.: violaciones de restricciones, problemas de conexión)? Verificar los logs del backend.
+    *   ¿Hay alguna operación asíncrona al guardar el usuario que no se está esperando adecuadamente, lo que podría causar que se envíe la respuesta de éxito antes de completar el guardado?
+2.  **Base de Datos:**
+    *   Conectarse a la base de datos (PostgreSQL) usada por el backend.
+    *   Verificar manualmente si el registro del usuario existe en la tabla `users` después del registro exitoso.
+    *   Confirmar que el campo `password` del nuevo registro contiene un hash válido, no la contraseña en texto plano.
+3.  **Lógica de Inicio de Sesión:**
+    *   Revalidar el manejador de inicio de sesión (`loginUser`) en `userController.ts`. ¿Está buscando correctamente al usuario (ej.: por correo o nombre de usuario)?
+    *   ¿El campo de comparación es sensible a mayúsculas/minúsculas (ej.: buscando por `email`, pero el usuario escribió `Email`)?
+4.  **Transmisión de Datos desde el Frontend:**
+    *   Usar las herramientas de desarrollo del navegador para inspeccionar la solicitud de red durante el inicio de sesión. ¿Se están enviando el correo/usuario y contraseña tal como fueron ingresados?
+5.  **Problemas de Transacciones:**
+    *   Si el proceso de registro involucra múltiples operaciones en la base de datos, ¿está envuelto en una transacción? ¿Podría estar fallando y revirtiendo la creación del usuario sin mostrar un mensaje claro de error al frontend?
 
-## Possible Solutions (Hotfix Focus)
+## Posibles Soluciones (Enfoque de Hotfix)
 
-*   **Ensure Database Save:** Add explicit error handling and logging around the database save operation (`user.save()` or `UserRepository.create()`) in the registration controller. Ensure it completes successfully before sending a success response.
-*   **Await Asynchronous Operations:** Make sure any promises returned by database operations or hashing functions are correctly `await`ed.
-*   **Verify Hashing:** Double-check that `bcrypt.hash()` (or equivalent) is called *before* saving the user data and that the resulting hash is stored, not the original password.
-*   **Database Connection/Pool:** Check for potential issues with database connections being exhausted or dropped, although this is less likely for a single registration.
+*   **Asegurar Guardado en la Base de Datos:** Agregar manejo explícito de errores y logging alrededor de la operación de guardado (`user.save()` o `UserRepository.create()`) en el controlador de registro. Asegurarse de que se complete exitosamente antes de enviar la respuesta de éxito.
+*   **Esperar Operaciones Asíncronas:** Verificar que cualquier promesa devuelta por operaciones de base de datos o funciones de hashing esté correctamente `await`eada.
+*   **Verificar Hashing:** Confirmar que se llama a `bcrypt.hash()` (o equivalente) *antes* de guardar los datos del usuario y que se almacene el hash resultante, no la contraseña original.
+*   **Conexión/Pool de Base de Datos:** Verificar posibles problemas con conexiones de base de datos agotadas o caídas, aunque esto es menos probable en un solo registro.
 
-## Acceptance Criteria for Fix
+## Criterios de Aceptación para la Solución
 
-*   A user successfully completing the registration process can immediately log in using the credentials they created.
-*   The user record exists in the database with a correctly hashed password after registration.
+*   Un usuario que completa exitosamente el proceso de registro puede iniciar sesión inmediatamente usando las credenciales que creó.
+*   El registro del usuario existe en la base de datos con una contraseña correctamente hasheada después del registro.

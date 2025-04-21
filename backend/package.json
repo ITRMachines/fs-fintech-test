@@ -6,7 +6,7 @@
       "scripts": {
             "build": "tsc",
             "start": "node dist/server.js",
-            "dev": "tsc-watch --onSuccess 'node dist/server.js'",
+            "dev": "tsc-watch --project . --onSuccess \"node dist/server.js\"",
             "db:migrate": "npx sequelize-cli db:migrate",
             "db:seed:all": "npx sequelize-cli db:seed:all",
             "db:seed:undo:all": "npx sequelize-cli db:seed:undo:all",

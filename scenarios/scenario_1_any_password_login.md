@@ -1,45 +1,45 @@
-# Scenario 1: Login with Any Password
+# Escenario 1: Inicio de sesión con cualquier contraseña
 
-## User Complaint
+## Reclamo del Usuario
 
-A user reports that they can successfully log into their account using their correct username/email but with *any* password they enter. They discovered this accidentally and are concerned about the security implications.
+Un usuario reporta que puede iniciar sesión exitosamente en su cuenta usando su nombre de usuario o correo electrónico correcto, pero con *cualquier* contraseña que ingrese. Descubrió esto por accidente y está preocupado por las implicaciones de seguridad.
 
-## Steps to Reproduce
+## Pasos para Reproducir
 
-1.  Navigate to the login page.
-2.  Enter a valid, registered username or email address.
-3.  Enter a completely incorrect or random password (e.g., "password123", "asdfghjkl").
-4.  Click the "Login" button.
-5.  **Expected Result:** An error message indicating incorrect credentials.
-6.  **Actual Result:** The user is successfully logged into their account and redirected to the dashboard.
+1.  Navegar a la página de inicio de sesión.
+2.  Ingresar un nombre de usuario o correo electrónico válido y registrado.
+3.  Ingresar una contraseña completamente incorrecta o aleatoria (ej.: "password123", "asdfghjkl").
+4.  Hacer clic en el botón "Iniciar sesión".
+5.  **Resultado Esperado:** Un mensaje de error indicando credenciales incorrectas.
+6.  **Resultado Real:** El usuario inicia sesión exitosamente en su cuenta y es redirigido al panel de control.
 
-## Technical Investigation Task
+## Tarea de Investigación Técnica
 
-The technical team needs to investigate the authentication flow to understand why the password validation is being bypassed or is not working correctly.
+El equipo técnico debe investigar el flujo de autenticación para entender por qué se está omitiendo la validación de la contraseña o por qué no está funcionando correctamente.
 
-### Potential Areas to Investigate:
+### Áreas Potenciales para Investigar:
 
-1.  **Backend Authentication Logic:**
-    *   Review the code in `fintech-support-challenge/backend/src/controllers/userController.ts` specifically the login handler (`loginUser`).
-    *   Examine how the provided password is being compared to the stored password hash.
-    *   Check the password hashing library (`bcrypt` or similar) usage. Is the comparison function being used correctly (e.g., `bcrypt.compare`)?
-    *   Is there any conditional logic that might inadvertently skip the password check?
+1.  **Lógica de Autenticación en el Backend:**
+    *   Revisar el código en `fintech-support-challenge/backend/src/controllers/userController.ts`, específicamente el manejador de inicio de sesión (`loginUser`).
+    *   Examinar cómo se está comparando la contraseña proporcionada con el hash de contraseña almacenado.
+    *   Verificar el uso de la librería de hashing de contraseñas (`bcrypt` o similar). ¿Se está usando correctamente la función de comparación (ej.: `bcrypt.compare`)?
+    *   ¿Existe alguna lógica condicional que podría estar omitiendo accidentalmente la verificación de la contraseña?
 2.  **Middleware:**
-    *   Review any authentication middleware (`fintech-support-challenge/backend/src/middleware/authMiddleware.ts`). Is it correctly applied to the login route? Is it interfering with the login process itself (it usually protects *after* login)?
-3.  **Database Model/Query:**
-    *   Check the `User` model (`fintech-support-challenge/backend/src/models/user.ts`). Is the password field correctly defined?
-    *   Examine the database query used to fetch the user during login. Is it correctly retrieving the stored password hash?
-4.  **Environment Variables:**
-    *   Are any environment variables related to authentication (e.g., salt rounds for bcrypt, JWT secrets) correctly configured and loaded?
+    *   Revisar cualquier middleware de autenticación (`fintech-support-challenge/backend/src/middleware/authMiddleware.ts`). ¿Está aplicado correctamente a la ruta de inicio de sesión? ¿Está interfiriendo con el proceso de inicio de sesión (normalmente protege *después* del login)?
+3.  **Modelo/Consulta de Base de Datos:**
+    *   Verificar el modelo `User` (`fintech-support-challenge/backend/src/models/user.ts`). ¿Está definido correctamente el campo de contraseña?
+    *   Examinar la consulta a la base de datos usada para obtener al usuario durante el inicio de sesión. ¿Está recuperando correctamente el hash de contraseña almacenado?
+4.  **Variables de Entorno:**
+    *   ¿Están correctamente configuradas y cargadas las variables de entorno relacionadas con la autenticación (ej.: rondas de sal de bcrypt, secretos JWT)?
 
-## Possible Solutions
+## Posibles Soluciones
 
-*   **Correct Password Comparison:** Ensure the `bcrypt.compare()` function (or equivalent) is used correctly, comparing the plaintext password provided by the user against the stored hash.
-*   **Remove Debug/Bypass Code:** Check for any temporary code or flags that might have been added for testing purposes and are bypassing the password check.
-*   **Fix Conditional Logic:** Correct any faulty `if`/`else` statements that might lead to the password check being skipped.
-*   **Ensure Correct Data Retrieval:** Verify that the user lookup correctly fetches the stored password hash from the database before attempting the comparison.
+*   **Corrección en la Comparación de Contraseña:** Asegurar que la función `bcrypt.compare()` (o equivalente) se utilice correctamente, comparando la contraseña en texto plano proporcionada por el usuario contra el hash almacenado.
+*   **Eliminar Código de Prueba o Puentes Temporales:** Revisar si existe algún código temporal o banderas agregadas con fines de prueba que estén omitiendo la verificación de contraseña.
+*   **Corregir Lógica Condicional:** Corregir cualquier instrucción `if`/`else` defectuosa que esté permitiendo saltar la verificación de contraseña.
+*   **Verificar Recuperación Correcta de Datos:** Asegurarse de que la búsqueda del usuario obtenga correctamente el hash de la contraseña desde la base de datos antes de realizar la comparación.
 
-## Acceptance Criteria for Fix
+## Criterios de Aceptación para la Solución
 
-*   Attempting to log in with a valid username/email and an incorrect password *must* result in an authentication error message.
-*   Attempting to log in with a valid username/email and the correct password *must* result in successful authentication.
+*   Intentar iniciar sesión con un nombre de usuario/correo válido y una contraseña incorrecta *debe* resultar en un mensaje de error de autenticación.
+*   Intentar iniciar sesión con un nombre de usuario/correo válido y la contraseña correcta *debe* resultar en una autenticación exitosa.

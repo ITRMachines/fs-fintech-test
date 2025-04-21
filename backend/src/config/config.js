@@ -3,12 +3,16 @@
 
     module.exports = {
       development: {
-        username: process.env.POSTGRES_USER,
-        password: process.env.POSTGRES_PASSWORD,
-        database: process.env.POSTGRES_DB,
-        host: process.env.DB_HOST,
-        port: process.env.DB_PORT || 5432,
-        dialect: 'postgres'
+        username:  'postgres',//process.env.POSTGRES_USER,
+        password:  'admin', //process.env.POSTGRES_PASSWORD,
+        database:  'finsim_db',//process.env.POSTGRES_DB,
+        
+        host:  'localhost',//process.env.DB_HOST,
+        port:  5432,//process.env.DB_PORT || 5432,
+        dialect: 'postgres',
+        "dialectOptions": {
+          "ssl": false // O configuración adecuada
+        }
       }
     };
     

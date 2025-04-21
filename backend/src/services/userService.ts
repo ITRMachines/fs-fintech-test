@@ -11,8 +11,32 @@ export const getUserById = async (id: number) => {
 };
 
 export const createUser = async (userData: any) => {
-  return await User.
-create(userData);
+  try {
+    // Verifica si el email o teléfono ya existen
+    const existingUser = await User.findOne({
+      where: {
+        [Op.or]: [
+          { email: userData.email },
+          // { phoneNumber: userData.phoneNumber }
+        ]
+      }
+    });
+
+    if (existingUser) {
+      throw new Error('El email o teléfono ya están registrados');
+    }
+
+    // Crea el usuario (el hook beforeCreate se encargará del hasheo)
+    const user = await User.create(userData);
+    
+    // Elimina la contraseña del objeto devuelto
+    const { password, ...userWithoutPassword } = user.get({ plain: true });
+    
+    return userWithoutPassword;
+  } catch (error) {
+    console.error('Error en userService.createUser:', error);
+    throw error;
+  }
 };
 
 export const updateUser = async (id: number, userData: any) => {
@@ -34,16 +58,27 @@ export const deleteUser = async (id: number) => {
 
 export const loginUser = async (emailPhone: string, password: string) => {
 
-  const user = await User.findOne({ where: { email: emailPhone } });
+  const user = await User.findOne({ 
+    where: { 
+      [Op.or]: [
+        { email: emailPhone },
+        // { phone: emailPhone } // Si tienes campo 'phone' en tu modelo
+      ]
+    } 
+  });
+
   if (!user) {
-    return null;
+    throw new Error('Usuario no encontrado'); // Mejor para manejo de errores
   }
 
-  const isPasswordValid = await bcrypt.compare(password, user.password);
+  const isPasswordValid = await user.comparePassword(password);
   if (!isPasswordValid) {
-    return null;
+    throw new Error('Contraseña incorrecta');
   }
 
-  return user;
+  // Elimina la contraseña del objeto devuelto por seguridad
+  const userWithoutPassword = user.get({ plain: true });
+  // delete userWithoutPassword.password;
 
-}
+  return userWithoutPassword;
+};

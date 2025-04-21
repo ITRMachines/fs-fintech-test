@@ -1,4 +1,6 @@
 'use client'
+import { useState } from 'react';
+import { useRouter } from 'next/navigation';
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from "@/components/ui/form";
 import { Input } from "@/components/ui/input";
@@ -7,6 +9,7 @@ import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import * as z from "zod";
 import Link from "next/link";
+import axios from 'axios';
 
 const formSchema = z.object({
   emailOrPhone: z.string().min(1, "Email or Phone is required"),
@@ -26,9 +29,37 @@ const Login = ({ onLogin }: LoginProps) => {
     },
   });
 
-  function onSubmit(values: z.infer<typeof formSchema>) {
-    onLogin(values)
-    console.log(values);
+  const [error, setError] = useState<string | null>(null);
+  const router = useRouter();
+
+  async function onSubmit(values: z.infer<typeof formSchema>) {
+    try {
+      const response = await fetch('http://localhost:3001/api/users/login', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          emailPhone: values.emailOrPhone,
+          password: values.password
+        })
+      });
+
+      const data = await response.json();
+  
+      if (!response.ok) {
+        const errorData = await response.json();
+        setError(errorData.error || 'Error en credenciales');
+        // console.log('Error en login:', errorData);
+        // throw new Error(errorData.error || 'Error en credenciales');
+      }
+  
+      onLogin(values);
+      router.push('/'); // Redirige a ruta protegida
+      
+    } catch (error:  any) {
+      setError('Error al iniciar sesión');
+    }
   }
 
   return (
@@ -39,14 +70,19 @@ const Login = ({ onLogin }: LoginProps) => {
       <CardContent>
         <Form {...form}>
           <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4">
+            {error && (
+              <div className="mb-4 p-2 bg-red-100 text-red-700 text-sm rounded-md">
+                {error}
+              </div>
+            )}
             <FormField
               control={form.control}
               name="emailOrPhone"
               render={({ field }) => (
                 <FormItem>
-                  <FormLabel>Email or Phone</FormLabel>
+                  <FormLabel>Email</FormLabel>
                   <FormControl>
-                    <Input placeholder="Enter your email or phone" {...field} />
+                    <Input placeholder="Enter your email" {...field} />
                   </FormControl>
                   <FormMessage />
                 </FormItem>

@@ -1,10 +1,11 @@
 
-FROM node:20-alpine
+FROM node:20-alpine AS buider
 WORKDIR /app 
 COPY package*.json ./ 
 
 RUN npm install -g yarn --force 
 RUN yarn 
+RUN yarn install --frozen-lockfile
 COPY . .
 
 RUN yarn standalone 

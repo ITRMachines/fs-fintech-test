@@ -14,14 +14,15 @@ services:
     depends_on:
       - backend # Frontend might need backend to be available
     # Add volume for development if needed for hot-reloading (not for candidate delivery)
-    # volumes:
-    #   - ./frontend/src:/app/src
+    volumes:
+      - ./frontend/src:/app/src
 
   backend:
     build:
       context: ./backend
     env_file:
       - .env # Load environment variables from .env file
+    command: npm run dev # Use dev command for development
     ports:
       - "3001"
     volumes:
