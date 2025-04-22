@@ -9,8 +9,7 @@ export const getUserById = async (id: number) => {
 };
 
 export const createUser = async (userData: any) => {
-  return await User.
-create(userData);
+  return await User.create(userData);
 };
 
 export const updateUser = async (id: number, userData: any) => {

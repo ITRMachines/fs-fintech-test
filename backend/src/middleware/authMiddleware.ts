@@ -2,6 +2,24 @@
 import { Request, Response, NextFunction } from 'express';
 import * as admin from 'firebase-admin';
 
+const firebaseConfig = {
+  apiKey: "AIzaSyAtPfBiIIxChMmjn4zytJvxfpM8n9kdHvY",
+  authDomain: "technical-test-cf6c9.firebaseapp.com",
+  projectId: "technical-test-cf6c9",
+  storageBucket: "technical-test-cf6c9.firebasestorage.app",
+  messagingSenderId: "1095715918576",
+  appId: "1:1095715918576:web:469ca60b3ecf0b5f35e835",
+  measurementId: "G-RV2LQDR9TR"
+};
+
+admin.initializeApp({
+  credential: admin.credential.cert(firebaseConfig),
+});
+
+console.log(admin);
+console.log(firebaseConfig);
+
+
 // Extend the Request interface to include the 'user' property
 declare global {
   namespace Express {

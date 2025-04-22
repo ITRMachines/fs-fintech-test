@@ -7,13 +7,21 @@ import { TransferDialog } from '@/components/TransferDialog';
 import { WithdrawDialog } from '@/components/WithdrawDialog';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { useRouter } from 'next/navigation';
+import axios from 'axios';
+import React, { useEffect } from 'react';
 
 const Dashboard = () => {
-  const [balance, setBalance] = useState(1000);
+  const [balance, setBalance] = useState(0);
+  const [userData, setUserData] = useState(null);
   const [isDepositOpen, setIsDepositOpen] = useState(false);
   const [isTransferOpen, setIsTransferOpen] = useState(false);
   const [isWithdrawOpen, setIsWithdrawOpen] = useState(false);
   const router = useRouter();
+
+  useEffect(() => {
+    const userId = localStorage.getItem('userId')
+
+  });
 
   const handleDeposit = (amount: number) => {
     setBalance(balance + amount);

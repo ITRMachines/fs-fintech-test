@@ -21,6 +21,8 @@ interface LoginProps {
 
 const Login = ({ onLogin }: LoginProps) => {
   const [error, setError] = useState<string | null>(null)
+  const [success, setSuccess] = useState<Boolean>(false)
+
   const form = useForm<z.infer<typeof formSchema>>({
     resolver: zodResolver(formSchema),
     defaultValues: {
@@ -29,10 +31,41 @@ const Login = ({ onLogin }: LoginProps) => {
     },
   });
 
+  const registerUserBackend = async (idToken: any, values: any) => {
+    try {
+      setSuccess(false)
+      setError(null)
+      const resp = await axios.post('http://localhost:3001/api/users', {
+        email: values.email,
+        password: values.password,
+        fullName: values.fullName,
+        phoneNumber: values.phoneNumber,
+      },
+      {
+        headers: {
+          "Content-Type": "application/json",
+          "Authorization": `Bearer ${idToken}`
+        },
+      });
+  
+      if(resp) {
+        console.log(resp)
+        setSuccess(true)
+      }
+    } catch (err:any) {
+      if (err.response && err.response.status === 400) {
+        console.log("400 Error Response:", err.response.data.error.message);
+        setError( err.response.data.error.message);
+      }
+      console.error("Login error:", err.response?.data || err.message);
+      setError(err.response?.data?.error?.message || "Login failed");
+    }
+  } 
+
   async function onSubmit(values: z.infer<typeof formSchema>) {
     try {
       const response = await axios.post(
-        "http://localhost:9099/identitytoolkit.googleapis.com/v1/accounts:signInWithPassword?key=fake-api-key",
+        "http://localhost:9099/identitytoolkit.googleapis.com/v1/accounts:signInWithPassword?key=AIzaSyAtPfBiIIxChMmjn4zytJvxfpM8n9kdHvY",
         {
           email: values.emailOrPhone,
           password: values.password,
@@ -46,7 +79,17 @@ const Login = ({ onLogin }: LoginProps) => {
       );
 
       console.log("Firebase login response:", response.data);
-      onLogin(values);
+      let userData = localStorage.getItem('userData');
+      let userCredentials = localStorage.getItem('user');
+      console.log(userData);
+
+      if(userData !==null && userCredentials !==null ){
+        userData = JSON.parse(userData)
+        userCredentials= JSON.parse(userCredentials)
+        await registerUserBackend(userCredentials.idToken, userData)
+        onLogin(values);
+      }
+
     } catch (err: any) {
       if (err.response && err.response.status === 400) {
         console.log("400 Error Response:", err.response.data.error.message);
