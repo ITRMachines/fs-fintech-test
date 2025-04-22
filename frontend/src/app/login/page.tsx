@@ -2,12 +2,14 @@
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from "@/components/ui/form";
 import { Input } from "@/components/ui/input";
+import { Alert, AlertTitle, AlertDescription } from "@/components/ui/alert";
 import { Button } from "@/components/ui/button";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import * as z from "zod";
 import Link from "next/link";
-
+import axios from 'axios'
+import { useState } from "react";
 const formSchema = z.object({
   emailOrPhone: z.string().min(1, "Email or Phone is required"),
   password: z.string().min(1, "Password is required"),
@@ -18,6 +20,7 @@ interface LoginProps {
 }
 
 const Login = ({ onLogin }: LoginProps) => {
+  const [error, setError] = useState<string | null>(null)
   const form = useForm<z.infer<typeof formSchema>>({
     resolver: zodResolver(formSchema),
     defaultValues: {
@@ -26,9 +29,32 @@ const Login = ({ onLogin }: LoginProps) => {
     },
   });
 
-  function onSubmit(values: z.infer<typeof formSchema>) {
-    onLogin(values)
-    console.log(values);
+  async function onSubmit(values: z.infer<typeof formSchema>) {
+    try {
+      const response = await axios.post(
+        "http://localhost:9099/identitytoolkit.googleapis.com/v1/accounts:signInWithPassword?key=fake-api-key",
+        {
+          email: values.emailOrPhone,
+          password: values.password,
+          returnSecureToken: true,
+        },
+        {
+          headers: {
+            "Content-Type": "application/json",
+          },
+        }
+      );
+
+      console.log("Firebase login response:", response.data);
+      onLogin(values);
+    } catch (err: any) {
+      if (err.response && err.response.status === 400) {
+        console.log("400 Error Response:", err.response.data.error.message);
+        setError( err.response.data.error.message);
+      }
+      console.error("Login error:", err.response?.data || err.message);
+      setError(err.response?.data?.error?.message || "Login failed");
+    }
   }
 
   return (
@@ -39,6 +65,10 @@ const Login = ({ onLogin }: LoginProps) => {
       <CardContent>
         <Form {...form}>
           <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4">
+            {error && (<Alert variant="destructive">
+              <AlertTitle>Errors:</AlertTitle>
+              <AlertDescription>{error}</AlertDescription>
+            </Alert>)}
             <FormField
               control={form.control}
               name="emailOrPhone"
