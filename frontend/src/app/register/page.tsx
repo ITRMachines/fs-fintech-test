@@ -28,6 +28,22 @@ export default function Register () {
 
   function onSubmit(values: z.infer<typeof FormSchema>) {
     console.log(values);
+    // const API_BASE_URL = "http://localhost:3001"; // TODO change this line.
+    // try {
+    //   const response = await fetch(`${API_BASE_URL}/`, { // Target the root path '/'
+    //     method: 'POST',
+    //     headers: {
+    //       'Content-Type': 'application/json',
+    //       // Include the Authorization header if authentication is required by the backend route
+    //       // 'Authorization': `Bearer ${token}`, // Remove this line if registration is public
+    //     },
+    //     body: JSON.stringify(values), // Send form values as JSON string
+    //   });
+    // }catch(e){
+    //   alert("Failed, somehow");
+    //   console.log(e);
+    // }
+
   }
 
   return (

@@ -5,11 +5,12 @@ import { initUser } from '../models/user';
 const sequelize = new Sequelize({
   dialect: 'postgres',
   host: process.env.DB_HOST || 'localhost',
-  port: parseInt(process.env.DB_PORT || '5432', 10),
+  port: parseInt(process.env.DB_PORT || '5434', 10),
   database: process.env.POSTGRES_DB || 'finsim',
   username: process.env.POSTGRES_USER || 'postgres',
   password: process.env.POSTGRES_PASSWORD || 'postgres',
 });
+console.log(sequelize);
 
 export const initializeDatabase = async () => {
   try {
